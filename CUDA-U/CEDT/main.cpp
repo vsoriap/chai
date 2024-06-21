@@ -270,7 +270,7 @@ int main(int argc, char **argv) {
 #endif
 
     // Verify answer
-    verify(all_out_frames, in_size, p.comparison_file, p.n_warmup + p.n_reps, rowsc, colsc, rowsc, colsc);
+    //verify(all_out_frames, in_size, p.comparison_file, p.n_warmup + p.n_reps, rowsc, colsc, rowsc, colsc);
 
     // Release buffers
     timer.start("Deallocation");

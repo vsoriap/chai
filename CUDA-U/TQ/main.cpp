@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
         if(rep >= p.n_warmup)
             timer.stop("Kernel");
     }
-    timer.print("Kernel", p.n_reps);
+    timer.print("Kernel", 1);
 
     // Verify answer
     verify(data, pattern, p.pool_size, p.iterations, p.n_gpu_threads);

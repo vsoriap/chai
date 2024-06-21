@@ -41,7 +41,7 @@
 #include <algorithm>
 
 // CPU threads--------------------------------------------------------------------------------------
-void run_cpu_threads(std::atomic_uint *histo, unsigned int *data, int size, int bins, int n_threads, int chunk, int n_tasks, float alpha
+void run_cpu_threads(int rep, std::atomic_uint *histo, unsigned int *data, int size, int bins, int n_threads, int chunk, int n_tasks, float alpha
 #ifdef CUDA_8_0
     , std::atomic_int *worklist
 #endif
@@ -50,34 +50,36 @@ void run_cpu_threads(std::atomic_uint *histo, unsigned int *data, int size, int 
     for(int k = 0; k < n_threads; k++) {
         cpu_threads.push_back(std::thread([=]() {
 
+            for(int i = 0; i < rep; i++){
 #ifdef CUDA_8_0
-            Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads, worklist);
+                Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads, &worklist[i]);
 #else
-            Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads);
+                Partitioner p = partitioner_create(n_tasks, alpha, k, n_threads);
 #endif
 
-            unsigned int Hs[bins];
-            // Local histogram initialization
-            for(int i = 0; i < bins; i++) {
-                Hs[i] = 0;
-            }
-
-            for(int i = cpu_first(&p); cpu_more(&p); i = cpu_next(&p)) {
-                for(int j = 0; j < chunk; j++) {
-                    // Read pixel
-                    unsigned int d = ((data[i * chunk + j] * bins) >> 12);
-
-                    // Vote in histogram
-                    Hs[d]++;
+                unsigned int Hs[bins];
+                // Local histogram initialization
+                for(int i = 0; i < bins; i++) {
+                    Hs[i] = 0;
                 }
-            }
 
-            // Merge to global histogram
-            for(int i = 0; i < bins; i++) {
-                (&histo[i])->fetch_add(Hs[i]);
+                for(int i = cpu_first(&p); cpu_more(&p); i = cpu_next(&p)) {
+                    for(int j = 0; j < chunk; j++) {
+                        // Read pixel
+                        unsigned int d = ((data[i * chunk + j] * bins) >> 12);
+                        // Vote in histogram
+                        Hs[d]++;
+                    }
+                }
+
+                // Merge to global histogram
+                for(int i = 0; i < bins; i++) {
+                    (&histo[i])->fetch_add(Hs[i]);
+                }
             }
 
         }));
     }
+
     std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { t.join(); });
 }

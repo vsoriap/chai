@@ -59,7 +59,9 @@ void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned ch
                     int sum = 0;
                     int pos = row * cols + col;
 
+                    #pragma omp simd
                     for(int i = 0; i < 3; i++) {
+                        #pragma unroll
                         for(int j = 0; j < 3; j++) {
                             sum += gaus[i][j] * data[(i + row + -1) * cols + (j + col + -1)];
                         }
@@ -89,7 +91,9 @@ void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned ch
                     int   pos = row * cols + col;
 
                     // find x and y derivatives
+                    #pragma unroll
                     for(int i = 0; i < 3; i++) {
+                        #pragma unroll
                         for(int j = 0; j < 3; j++) {
                             sumx += sobx[i][j] * data[(i + row + -1) * cols + (j + col + -1)];
                             sumy += soby[i][j] * data[(i + row + -1) * cols + (j + col + -1)];

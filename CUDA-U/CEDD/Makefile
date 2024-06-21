@@ -34,7 +34,7 @@
 
 CXX=nvcc
 ifndef CHAI_OPENCV
-CXX_FLAGS=-std=c++11 -arch=sm_61
+CXX_FLAGS=-std=c++11 -arch=sm_61 -Xcompiler -fopenmp -Xcompiler -march=armv8-a+sve -Xcompiler -ftree-vectorize
 else
 CXX_FLAGS=-std=c++11 -arch=sm_61 -D CHAI_OPENCV 
 endif

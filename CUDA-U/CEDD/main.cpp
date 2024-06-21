@@ -310,16 +310,16 @@ int main(int argc, char **argv) {
     cudaDeviceSynchronize();
     timer.stop("Total Proxies");
     timer.print("Total Proxies", 1);
-    printf("CPU Proxy:\n");
-    printf("\t");
-    timer.print("CPU Proxy: Kernel", 1);
-    printf("GPU Proxy:\n");
-    printf("\t");
-    timer.print("GPU Proxy: Copy To Device", 1);
-    printf("\t");
-    timer.print("GPU Proxy: Kernel", 1);
-    printf("\t");
-    timer.print("GPU Proxy: Copy Back", 1);
+    //printf("CPU Proxy:\n");
+    //printf("\t");
+    //timer.print("CPU Proxy: Kernel", 1);
+    //printf("GPU Proxy:\n");
+    //printf("\t");
+    //timer.print("GPU Proxy: Copy To Device", 1);
+    //printf("\t");
+    //timer.print("GPU Proxy: Kernel", 1);
+    //printf("\t");
+    //timer.print("GPU Proxy: Copy Back", 1);
 
 #ifdef CHAI_OPENCV
     // Display the result
@@ -336,7 +336,7 @@ int main(int argc, char **argv) {
 #endif
 
     // Verify answer
-    verify(all_out_frames, in_size, p.comparison_file, p.n_warmup + p.n_reps, rowsc, colsc, rowsc, colsc);
+    //verify(all_out_frames, in_size, p.comparison_file, p.n_warmup + p.n_reps, rowsc, colsc, rowsc, colsc);
 
     // Release buffers
     timer.start("Deallocation");

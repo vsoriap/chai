@@ -41,7 +41,7 @@
 #include <algorithm>
 
 // BezierBlend (http://paulbourke.net/geometry/bezier/)
-T BezierBlend(int k, T mu, int n) {
+T inline BezierBlend(int k, T mu, int n) {
     int nn, kn, nkn;
     T   blend = 1;
     nn        = n;
@@ -106,7 +106,7 @@ void run_cpu_threads(XYZ *in, XYZ *outp, int n_tasks, float alpha, int n_threads
 #pragma unroll
                             for(int ki = 0; ki <= in_size_i; ki++) {
                                 bi = BezierBlend(ki, mui, in_size_i);
-#pragma unroll
+#pragma omp simd
                                 for(int kj = 0; kj <= in_size_j; kj++) {
                                     bj = BezierBlend(kj, muj, in_size_j);
                                     out.x += (in[ki * (in_size_j + 1) + kj].x * bi * bj);

@@ -39,6 +39,7 @@
 #include <math.h>
 #include <thread>
 #include <algorithm>
+#include <vector>
 
 //----------------------------------------------------------------------------
 // CPU: Host enqueue task

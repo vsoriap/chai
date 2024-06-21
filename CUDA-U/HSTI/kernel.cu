@@ -59,10 +59,8 @@ __global__ void Histogram_kernel(int size, int bins, int n_tasks, float alpha, u
 #endif
     
     // Block and thread index
-    const int bx = blockIdx.x;
     const int tx = threadIdx.x;
     const int bD = blockDim.x;
-    const int gD = gridDim.x;
 
     // Sub-histograms initialization
     for(int pos = tx; pos < bins; pos += bD) {
@@ -94,7 +92,7 @@ __global__ void Histogram_kernel(int size, int bins, int n_tasks, float alpha, u
     }
 }
 
-cudaError_t call_Histogram_kernel(int blocks, int threads, int size, int bins, int n_tasks, float alpha, 
+cudaError_t call_Histogram_kernel(int rep, int blocks, int threads, int size, int bins, int n_tasks, float alpha, 
     unsigned int *data, unsigned int *histo, int l_mem_size
 #ifdef CUDA_8_0
     , int* worklist
@@ -102,12 +100,14 @@ cudaError_t call_Histogram_kernel(int blocks, int threads, int size, int bins, i
     ){
     dim3 dimGrid(blocks);
     dim3 dimBlock(threads);
-    Histogram_kernel<<<dimGrid, dimBlock, l_mem_size>>>(size, bins, n_tasks, alpha, 
-        data, histo
-#ifdef CUDA_8_0
-        , worklist
-#endif
-        );
+    for(int i = 0; i < rep; i++){
+        Histogram_kernel<<<dimGrid, dimBlock, l_mem_size>>>(size, bins, n_tasks, alpha, 
+            data, histo
+    #ifdef CUDA_8_0
+            , &worklist[i]
+    #endif
+            );
+    }
     cudaError_t err = cudaGetLastError();
     return err;
 }

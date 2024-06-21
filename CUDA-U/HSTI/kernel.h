@@ -37,13 +37,13 @@
 #include <atomic>
 #include "support/common.h"
 
-void run_cpu_threads(std::atomic_uint *histo, unsigned int *data, int size, int bins, int num_threads, int chunk, int n_tasks, float alpha
+void run_cpu_threads(int rep, std::atomic_uint *histo, unsigned int *data, int size, int bins, int num_threads, int chunk, int n_tasks, float alpha
 #ifdef CUDA_8_0
     , std::atomic_int *wl
 #endif
     );
 
-cudaError_t call_Histogram_kernel(int blocks, int threads, int size, int bins, int n_tasks, float alpha, 
+cudaError_t call_Histogram_kernel(int rep, int blocks, int threads, int size, int bins, int n_tasks, float alpha, 
     unsigned int *data, unsigned int *histo, int l_mem_size
 #ifdef CUDA_8_0
     , int* worklist

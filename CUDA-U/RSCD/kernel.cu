@@ -87,8 +87,6 @@ __global__ void RANSAC_kernel_block(int flowvector_count, int max_iter, int erro
 #endif
     
     const int tx         = threadIdx.x;
-    const int bx         = blockIdx.x;
-    const int num_blocks = gridDim.x;
 
     float vx_error, vy_error;
     int   outlier_local_count = 0;

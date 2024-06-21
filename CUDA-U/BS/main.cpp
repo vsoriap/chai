@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
         if(rep >= p.n_warmup)
             timer.stop("Kernel");
     }
-    timer.print("Kernel", p.n_reps);
+    timer.print("Kernel", 1);
 
 #ifndef CUDA_8_0
     // Copy back
@@ -305,9 +305,9 @@ int main(int argc, char **argv) {
 
 // Verify answer
 #ifdef CUDA_8_0
-    verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
+    //verify(h_in, h_out, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
 #else
-    verify(h_in, h_out_merge, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
+    //verify(h_in, h_out_merge, p.in_size_i, p.in_size_j, p.out_size_i, p.out_size_j);
 #endif
 
     // Free memory

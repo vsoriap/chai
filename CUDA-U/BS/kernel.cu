@@ -85,7 +85,6 @@ __global__ void Bezier_surface(int n_tasks, float alpha, int in_size_i, int in_s
 #endif
 
     const int wg_in_J = divceil(out_size_j, blockDim.x);
-    const int wg_in_I = divceil(out_size_i, blockDim.y);
 
     for(int i = threadIdx.y * blockDim.x + threadIdx.x; i < (in_size_i + 1) * (in_size_j + 1);
         i += blockDim.x * blockDim.y){
@@ -109,7 +108,7 @@ __global__ void Bezier_surface(int n_tasks, float alpha, int in_size_i, int in_s
 #pragma unroll
             for(int ki = 0; ki <= in_size_i; ki++) {
                 bi = BezierBlendGPU(ki, mui, in_size_i);
-#pragma unroll
+#pragma omp simd
                 for(int kj = 0; kj <= in_size_j; kj++) {
                     bj = BezierBlendGPU(kj, muj, in_size_j);
                     out.x += (l_in[ki * (in_size_j + 1) + kj].x * bi * bj);

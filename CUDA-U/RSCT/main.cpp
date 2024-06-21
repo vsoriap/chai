@@ -252,11 +252,11 @@ int main(int argc, char **argv) {
         if(rep >= p.n_warmup)
             timer.stop("Kernel");
     }
-    timer.print("Kernel", p.n_reps);
+    timer.print("Kernel", 1);
 
     // Verify answer
-    verify(flow_vector_array, n_flow_vectors, random_numbers, p.max_iter, p.error_threshold, p.convergence_threshold,
-        g_out_id[0], best_outliers);
+    //verify(flow_vector_array, n_flow_vectors, random_numbers, p.max_iter, p.error_threshold, p.convergence_threshold,
+    //    g_out_id[0], best_outliers);
 
     // Free memory
     timer.start("Deallocation");

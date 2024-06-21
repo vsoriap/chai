@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
         if(rep >= p.n_warmup)
             timer.stop("Kernel");
     }
-    timer.print("Kernel", p.n_reps);
+    timer.print("Kernel", 1);
 
 #ifndef CUDA_8_0
     // Copy back
