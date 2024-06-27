@@ -39,22 +39,21 @@
 #include <vector>
 #include <algorithm>
 
-float gaus[3][3] = {{0.0625, 0.125, 0.0625}, {0.1250, 0.250, 0.1250}, {0.0625, 0.125, 0.0625}};
-// Some of the available convolution kernels
-int sobx[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
-int soby[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
-
 // CPU threads--------------------------------------------------------------------------------------
 void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned char *theta, int rows, int cols,
     int num_threads, int t_index) {
 
-    // NON-MAXIMUM SUPPRESSION KERNEL
-    std::vector<std::thread> cpu_threads_nonmax;
+    std::vector<std::thread> cpu_threads;
     for(int k = 0; k < num_threads; k++) {
-        cpu_threads_nonmax.push_back(std::thread([=]() {
+        cpu_threads.push_back(std::thread([&]() {
 
             unsigned char *data = buffer0;
             unsigned char *out  = buffer1;
+
+            float        lowThresh  = 10;
+            float        highThresh = 70;
+            const size_t EDGE       = 255;
+            float med = (highThresh + lowThresh) / 2;
             for(int row = k + 1; row < rows - 1; row += num_threads) {
                 for(int col = 1; col < cols - 1; col++) {
                     // These variables are offset by one to avoid seg. fault errors
@@ -81,7 +80,10 @@ void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned ch
                         }
                         // otherwise, copy my value to the output buffer
                         else {
-                            out[POS] = data[POS];
+                            if(data[POS] >= med)
+                                out[POS] = EDGE;
+                            else
+                                out[POS] = 0;
                         }
                         break;
 
@@ -94,7 +96,10 @@ void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned ch
                         }
                         // otherwise, copy my value to the output buffer
                         else {
-                            out[POS] = data[POS];
+                            if(data[POS] >= med)
+                                out[POS] = EDGE;
+                            else
+                                out[POS] = 0;
                         }
                         break;
 
@@ -107,7 +112,10 @@ void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned ch
                         }
                         // otherwise, copy my value to the output buffer
                         else {
-                            out[POS] = data[POS];
+                            if(data[POS] >= med)
+                                out[POS] = EDGE;
+                            else
+                                out[POS] = 0;
                         }
                         break;
 
@@ -120,50 +128,24 @@ void run_cpu_threads(unsigned char *buffer0, unsigned char *buffer1, unsigned ch
                         }
                         // otherwise, copy my value to the output buffer
                         else {
-                            out[POS] = data[POS];
+                            if(data[POS] >= med)
+                                out[POS] = EDGE;
+                            else
+                                out[POS] = 0;
                         }
                         break;
 
-                    default: out[POS] = data[POS]; break;
-                    }
-                }
-            }
-
-        }));
-    }
-    std::for_each(cpu_threads_nonmax.begin(), cpu_threads_nonmax.end(), [](std::thread &t) { t.join(); });
-
-    // HYSTERESIS KERNEL
-    std::vector<std::thread> cpu_threads_hyst;
-    for(int k = 0; k < num_threads; k++) {
-        cpu_threads_hyst.push_back(std::thread([=]() {
-
-            unsigned char *data = buffer1;
-            unsigned char *out  = buffer0;
-            // Establish our high and low thresholds as floats
-            float        lowThresh  = 10;
-            float        highThresh = 70;
-            const size_t EDGE       = 255;
-            for(int row = k + 1; row < rows - 1; row += num_threads) {
-                for(int col = 1; col < cols - 1; col++) {
-                    size_t pos = row * cols + col;
-
-                    if(data[pos] >= highThresh)
-                        out[pos] = EDGE;
-                    else if(data[pos] <= lowThresh)
-                        out[pos] = 0;
-                    else {
-                        float med = (highThresh + lowThresh) / 2;
-
-                        if(data[pos] >= med)
-                            out[pos] = EDGE;
+                    default: 
+                        if(data[POS] >= med)
+                            out[POS] = EDGE;
                         else
-                            out[pos] = 0;
+                            out[POS] = 0;
+                        break;
                     }
                 }
             }
 
         }));
     }
-    std::for_each(cpu_threads_hyst.begin(), cpu_threads_hyst.end(), [](std::thread &t) { t.join(); });
+    std::for_each(cpu_threads.begin(), cpu_threads.end(), [](std::thread &t) { t.join(); });
 }
