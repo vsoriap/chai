@@ -33,20 +33,48 @@
  *
  */
 
-#include "cuda_runtime.h"
-#include <atomic>
-#include <string>
-#include "support/common.h"
-using namespace std;
+#include "common.h"
+#include <math.h>
 
-void host_insert_tasks(task_t *queues, task_t *task_pool, std::atomic_int *num_consumed_tasks,
-    std::atomic_int *num_written_tasks, std::atomic_int *num_task_in_queue, int *last_queue, int *num_tasks,
-    int gpuQueueSize, int *offset);
-void run_cpu_threads(int n_threads, task_t *queues, std::atomic_int *num_task_in_queue,
-    std::atomic_int *num_written_tasks, std::atomic_int *num_consumed_tasks, task_t *task_pool,
-    int *data, int gpuQueueSize, int *offset, int *last_queue, int *num_tasks, int tpi, int poolSize,
-    int n_work_groups);
+inline int compare_output(T *outp, T *outpCPU, int size) {
+    double sum_delta2, sum_ref2, L1norm2;
+    sum_delta2 = 0;
+    sum_ref2   = 0;
+    L1norm2    = 0;
+    for(int i = 0; i < size; i++) {
+        sum_delta2 += std::abs(outp[i] - outpCPU[i]);
+        sum_ref2 += std::abs(outpCPU[i]);
+    }
+    if(sum_ref2 == 0)
+        sum_ref2 = 1; //In case percent=0
+    L1norm2      = (double)(sum_delta2 / sum_ref2);
+    if(L1norm2 >= 1e-6){
+        printf("Test failed\n");
+        exit(EXIT_FAILURE);
+    }
+    return 0;
+}
 
-cudaError_t call_TaskQueue_gpu(int blocks, int threads, task_t *queues, int *n_task_in_queue, 
-    int *n_written_tasks, int *n_consumed_tasks, int *data, int gpuQueueSize, int iterations, 
-		int l_mem_size);
+// Sequential implementation for comparison purposes
+inline double cpu_streamcompaction(T *input, int size, int value) {
+    struct timeval t1, t2;
+    int            pos = 0;
+    // start timer
+    gettimeofday(&t1, NULL);
+    for(int my = 0; my < size; my++) {
+        if(input[my] != value) {
+            input[pos] = input[my];
+            pos++;
+        }
+    }
+    // end timer
+    gettimeofday(&t2, NULL);
+    double timer = (t2.tv_sec - t1.tv_sec) * 1000000.0 + (t2.tv_usec - t1.tv_usec);
+    //printf("Execute time: %f us\n", timer);
+    return timer;
+}
+
+inline void verify(T *input, T *input_array, int size, int value, int size_compact) {
+    cpu_streamcompaction(input_array, size, value);
+    compare_output(input, input_array, size_compact);
+}

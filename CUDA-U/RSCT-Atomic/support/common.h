@@ -36,17 +36,15 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#define SIGNAL_STOP_KERNEL 0xFEDCFEDC
-#define SIGNAL_WORK_KERNEL 1
-#define SIGNAL_NOTWORK_KERNEL 2
-
-#define NUM_TASK_QUEUES 2
-
-#define PRINT 0
+#define CUDA_8_0
 
 typedef struct {
-    int id;
-    int op;
-} task_t;
+    int x;
+    int y;
+    int vx;
+    int vy;
+} flowvector;
+
+#define PRINT 0
 
 #endif

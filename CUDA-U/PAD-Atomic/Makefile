@@ -33,7 +33,7 @@
 # 
 
 CXX=nvcc
-CXX_FLAGS=-std=c++11 -arch=sm_61
+CXX_FLAGS=-std=c++11 -arch=sm_61 -Xcompiler -march=armv8-a+lse
 
 ifndef CHAI_CUDA_LIB
     $(error CHAI_CUDA_LIB not defined. This environment variable must be defined to point to the location of the CUDA library)
@@ -45,9 +45,9 @@ ifndef CHAI_CUDA_INC
 endif
 INC=-I$(CHAI_CUDA_INC)
 
-DEP=kernel.cpp kernel.h main.cpp kernel.cu support/common.h support/cuda-setup.h support/timer.h support/verify.h
+DEP=kernel.cpp kernel.h main.cpp kernel.cu support/common.h support/cuda-setup.h support/partitioner.h support/timer.h support/verify.h
 SRC=main.cpp kernel.cpp kernel.cu
-EXE=tq
+EXE=pad
 
 all:
 	$(CXX) $(CXX_FLAGS) $(SRC) $(LIB) $(INC) -o $(EXE)

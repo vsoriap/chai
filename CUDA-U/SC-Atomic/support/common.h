@@ -33,23 +33,18 @@
  *
  */
 
-#include "common.h"
-#include <math.h>
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
-inline void verify(int *data, int *pattern, int poolSize, int iterations, int n_work_items) {
-    int error = 0;
-    for(int i = 0; i < poolSize * n_work_items; ++i) {
-        if(pattern[i / n_work_items] == SIGNAL_WORK_KERNEL) {
-            if(data[i] - n_work_items * iterations - i / n_work_items != 0)
-                ++error;
-        }
-        if(pattern[i / n_work_items] == SIGNAL_NOTWORK_KERNEL) {
-            if(data[i] - n_work_items * 1 - i / n_work_items != 0)
-                ++error;
-        }
-    }
-    if(error != 0) {
-        printf("Test failed\n");
-        exit(EXIT_FAILURE);
-    }
-}
+#define CUDA_8_0
+
+#define T int
+#ifdef REGISTERS
+#define REGS REGISTERS
+#else
+#define REGS 32
+#endif
+
+#define divceil(n, m) (((n)-1) / (m) + 1)
+
+#endif
