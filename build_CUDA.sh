@@ -2,13 +2,17 @@
 echo -e "\033[32mCleaning directory\033[m"
 rm -rf bin
 mkdir -p bin
-module load cuda/12.3.2 
-export CHAI_CUDA_INC=/global/software/rocky-9.aarch64/modules/langs/cuda/12.3.2/include
-export CHAI_CUDA_LIB=/global/software/rocky-9.aarch64/modules/langs/cuda/12.3.2/lib64
+module load cuda/12.3 
+export CHAI_CUDA_INC=/gpfs/apps/MN5/ACC/CUDA/12.3/include
+export CHAI_CUDA_LIB=/gpfs/apps/MN5/ACC/CUDA/12.3/lib64
 
 echo -e "\033[32mCompiling BS version\033[m"
 make -C CUDA-U/BS/
 cp CUDA-U/BS/bs bin/
+
+echo -e "\033[32mCompiling BFS version\033[m"
+make -C CUDA-U/BFS/
+cp CUDA-U/BFS/bfs bin/
 
 echo -e "\033[32mCompiling CEDD version\033[m"
 make -C CUDA-U/CEDD/
@@ -41,6 +45,10 @@ cp CUDA-U/RSCT/rsct bin/
 echo -e "\033[32mCompiling SC version\033[m"
 make -C CUDA-U/SC/
 cp CUDA-U/SC/sc bin/
+
+echo -e "\033[32mCompiling SSSP version\033[m"
+make -C CUDA-U/SSSP/
+cp CUDA-U/SSSP/sssp bin/
 
 echo -e "\033[32mCompiling TRNS version\033[m"
 make -C CUDA-U/TRNS/

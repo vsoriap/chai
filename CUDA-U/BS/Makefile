@@ -33,7 +33,7 @@
 # 
 
 CXX=nvcc
-CXX_FLAGS=-std=c++11 -arch=sm_61 -Xcompiler -fopenmp -Xcompiler -march=armv8-a+sve+lse -Xcompiler -ftree-vectorize
+CXX_FLAGS=-std=c++11 -arch=sm_90 -Xcompiler -fopenmp -Xcompiler -ftree-vectorize
 
 ifndef CHAI_CUDA_LIB
     $(error CHAI_CUDA_LIB not defined. This environment variable must be defined to point to the location of the CUDA library)
