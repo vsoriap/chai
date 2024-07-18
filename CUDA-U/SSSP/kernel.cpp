@@ -38,6 +38,8 @@
 #include <thread>
 #include <vector>
 #include <algorithm>
+#include <cstdio>
+
 
 int atomic_maximum(std::atomic_int *maximum_value, int value) {
     int prev_value = (maximum_value)->load();
@@ -117,6 +119,7 @@ void run_cpu_threads(Node *h_graph_nodes, Edge *h_graph_edges, std::atomic_int *
                     else
                         (gray_shade)->store(GRAY1);
                     (threads_run)->fetch_add(1);
+                    //printf("Iter %d, n_t %d\n",iter, *n_t);
                 } else {
                     while((threads_run)->load() < iter) {
                     }

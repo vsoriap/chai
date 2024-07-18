@@ -36,6 +36,7 @@
 #define _CUDA_COMPILER_
 
 #include "support/common.h"
+#include <cstdio>
 
 // CUDA kernel ------------------------------------------------------------------------------------------
 __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
@@ -45,10 +46,7 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
     int LIMIT, int CPU) {
 
     extern __shared__ int l_mem[];
-    int* tail_bin = l_mem;
-    int* l_qout = (int*)&tail_bin[1];
-    int* shift = (int*)&l_qout[W_QUEUE_SIZE];
-    int* base = (int*)&shift[1];
+    int* base = l_mem;
 
     const int tid     = threadIdx.x;
     const int gtid    = blockIdx.x * blockDim.x + threadIdx.x;
@@ -74,11 +72,6 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
 
             int gray_shade_local = atomicAdd_system(&gray_shade[0], 0);
 
-            if(tid == 0) {
-                // Reset queue
-                *tail_bin = 0;
-            }
-
             // Fetch frontier elements from the queue
             if(tid == 0)
                 *base = atomicAdd_system(&head[0], WG_SIZE);
@@ -86,28 +79,6 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
 
             int my_base = *base;
             while(my_base < *n_t) {
-
-                // If local queue might overflow
-                if(*tail_bin >= W_QUEUE_SIZE / 2) {
-                    if(tid == 0) {
-                        // Add local tail_bin to tail
-                        *shift = atomicAdd_system(&tail[0], *tail_bin);
-                    }
-                    __syncthreads();
-                    int local_shift = tid;
-                    while(local_shift < *tail_bin) {
-                        qout[*shift + local_shift] = l_qout[local_shift];
-                        // Multiple threads are copying elements at the same time, so we shift by multiple elements for next iteration
-                        local_shift += WG_SIZE;
-                    }
-                    __syncthreads();
-                    if(tid == 0) {
-                        // Reset local queue
-                        *tail_bin = 0;
-                    }
-                    __syncthreads();
-                }
-
                 if(my_base + tid < *n_t && *overflow == 0) {
                     // Visit a node from the current frontier
                     int pid = qin[my_base + tid];
@@ -130,12 +101,8 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
                             int old_color = atomicMax_system(&color[id], gray_shade_local);
                             if(old_color != gray_shade_local) {
                                 // Push to the queue
-                                int tail_index = atomicAdd(tail_bin, 1);
-                                if(tail_index >= W_QUEUE_SIZE) {
-                                    *overflow = 1;
-                                    break;
-                                } else
-                                    l_qout[tail_index] = id;
+                                int index_o   = atomicAdd_system(&tail[0],1);
+                                qout[index_o] = id;
                             }
                         }
                     }
@@ -145,31 +112,14 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
                 __syncthreads();
                 my_base = *base;
             }
-            /////////////////////////////////////////////////////////
-            // Compute size of the output and allocate space in the global queue
-            if(tid == 0) {
-                *shift = atomicAdd_system(&tail[0], *tail_bin);
-            }
-            __syncthreads();
-            ///////////////////// CONCATENATE INTO HOST COHERENT MEMORY /////////////////////
-            int local_shift = tid;
-            while(local_shift < *tail_bin) {
-                qout[*shift + local_shift] = l_qout[local_shift];
-                // Multiple threads are copying elements at the same time, so we shift by multiple elements for next iteration
-                local_shift += WG_SIZE;
-            }
-            //////////////////////////////////////////////////////////////////////////
-        }
-
-        // Synchronization
-        if(*overflow == 1) {
-            break;
         }
 
         if(CPU) { // if CPU is available
             iter++;
             if(tid == 0) {
                 atomicAdd_system(&threads_end[0], WG_SIZE);
+
+                __threadfence();
 
                 while(atomicAdd_system(&threads_run[0], 0) < iter) {
                 }
@@ -178,6 +128,7 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
             iter++;
             if(tid == 0)
                 atomicAdd_system(&threads_end[0], WG_SIZE);
+            __threadfence();
             if(gtid == 0) {
                 while(atomicAdd_system(&threads_end[0], 0) != MAXWG * WG_SIZE) {
                 }
@@ -189,7 +140,9 @@ __global__ void SSSP_gpu(Node *graph_nodes_av, Edge *graph_edges_av, int *cost,
                     atomicExch_system(&gray_shade[0], GRAY0);
                 else
                     atomicExch_system(&gray_shade[0], GRAY1);
+                __threadfence();
                 atomicAdd_system(&threads_run[0], 1);
+                //printf("Iter %d, n_t %d\n",iter, *n_t);
             }
             if(tid == 0 && gtid != 0) {
                 while(atomicAdd_system(&threads_run[0], 0) < iter) {
